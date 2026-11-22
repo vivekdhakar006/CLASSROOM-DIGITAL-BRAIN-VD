@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#080b09" />
+  <meta name="description" content="A cinematic smart classroom prototype by Madhav Institute of Technology & Science, Gwalior." />
+  <title>Classroom Digital Brain — MITS Gwalior</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400&family=Caveat+Brush&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="studio.css" />
+  <link rel="stylesheet" href="profile-intro.css?v=2" />
+
+  <!-- Pinned browser libraries; no build tools or npm required. -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+</head>
+<body>
+  <div id="world" aria-hidden="true"></div>
+  <!-- From Uiverse.io by amir_6539 - https://uiverse.io/amir_6539/red-duck-82 | MIT License, Copyright (c) amir_6539 (Amir_Code_09). A lightweight, room-friendly layered star drift inspired by the supplied starfield card. -->
+  <div class="uiverse-starfield" aria-hidden="true"><i class="uiverse-stars-one"></i><i class="uiverse-stars-two"></i><i class="uiverse-stars-three"></i></div>
+  <!-- From Uiverse.io by whoisyourdeadie - https://uiverse.io/whoisyourdeadie/foolish-rabbit-13 | MIT License, Copyright (c) whoisyourdeadie (daria). Low-opacity ambient IoT code rain. -->
+  <div class="studio-matrix-container" aria-hidden="true"><div class="studio-matrix-pattern" id="matrix-pattern"></div></div>
+  <div class="world-vignette" aria-hidden="true"></div>
+  <div class="world-grain" aria-hidden="true"></div>
+
+  <!-- First-page portrait intro: the image and reveal choreography use the supplied Vivek concept. -->
+  <section class="vivek-screen" id="vivek-screen" aria-label="Welcome to Vivek's classroom project">
+    <div class="vivek-topline"><span class="vivek-mark"><i></i><i></i><i></i></span><span>MITS · GWALIOR</span><span class="vivek-topline-rule"></span><span>INTERNET OF THINGS</span></div>
+    <svg class="vivek-wm" viewBox="0 0 1600 460" role="img" aria-label="Vivek" focusable="false"><text x="50%" y="76%" text-anchor="middle">VIVEK</text></svg>
+    <p class="vivek-script" aria-hidden="true">Vivek</p>
+    <figure class="vivek-portrait"><img src="assets/vivek-portrait.png" alt="Vivek holding a laptop and speaking on a telephone" fetchpriority="high" /></figure>
+    <div class="vivek-copy">
+      <p class="vivek-kicker"><span></span> THE MAKER BEHIND THE ROOM</p>
+      <h1>Ideas that<br /><em>feel alive.</em></h1>
+      <p class="vivek-sub">A classroom project by Vivek Dhakar, exploring how a room can sense people and use power more thoughtfully.</p>
+      <button class="vivek-enter" id="vivek-enter" type="button"><span>Enter the experience</span><span class="vivek-arrow" aria-hidden="true">↗</span></button>
+    </div>
+    <div class="vivek-cue" aria-hidden="true"><span></span> A CREATIVE IOT SHOWCASE</div>
+    <p class="vivek-caption">ENGINEERING · DESIGN · CLASSROOM DIGITAL BRAIN</p>
+  </section>
+
+  <header class="site-header" id="site-header">
+    <a class="wordmark" href="#top" aria-label="Classroom Digital Brain home">
+      <span class="wordmark-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>CLASSROOM<br><strong>DIGITAL BRAIN</strong></span>
+    </a>
+    <div class="header-center"><span class="header-line"></span><span>MITS · GWALIOR</span><span class="header-line"></span></div>
+    <!-- From Uiverse.io by r7chardgh - https://uiverse.io/r7chardgh/dry-rabbit-69 | MIT License, Copyright (c) r7chardgh (Richard Tsang). Adapted as a Dusk/Ocean quick theme switch. -->
+    <div class="theme-dock" aria-label="Color themes">
+      <span class="theme-current" id="theme-name">DUSK</span>
+      <div class="theme-options" role="group" aria-label="Choose a color theme">
+        <button class="theme-swatch selected" type="button" data-theme-choice="dusk" aria-label="Dusk theme" aria-pressed="true"><i></i></button>
+        <button class="theme-swatch" type="button" data-theme-choice="ocean" aria-label="Ocean theme" aria-pressed="false"><i></i></button>
+        <button class="theme-swatch" type="button" data-theme-choice="dune" aria-label="Dune theme" aria-pressed="false"><i></i></button>
+        <button class="theme-swatch" type="button" data-theme-choice="silk" aria-label="Silk theme" aria-pressed="false"><i></i></button>
+        <button class="theme-swatch" type="button" data-theme-choice="aurora" aria-label="Aurora theme" aria-pressed="false"><i></i></button>
+      </div>
+      <button class="uiverse-theme-switch" id="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Quick switch between Dusk and Ocean" title="Quick switch between Dusk and Ocean"><span class="uiverse-switch-track"><span class="uiverse-switch-left">Dusk</span><span class="uiverse-switch-right">Ocean</span></span></button>
+    </div>
+    <div class="header-actions">
+      <span class="live-indicator"><i></i><span id="header-live-label">EXPERIENCE</span></span>
+      <button class="header-back" id="back-to-intro" type="button" hidden>↖ <span>Front page</span></button>
+      <button class="header-back profile-back-button" id="back-to-vivek" type="button" title="Return to Vivek's opening page" aria-label="Return to Vivek's opening page" hidden>↶ <span>Vivek intro</span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="intro-screen" id="intro-screen" aria-label="Classroom introduction">
+      <div class="intro-meta"><span>SMART SPACES / 01</span><span>AN IOT SHOWCASE</span></div>
+      <div class="intro-copy" id="intro-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> MADHAV INSTITUTE OF TECHNOLOGY &amp; SCIENCE</p>
+        <h1>A room that<br /><em>thinks ahead.</em></h1>
+        <p class="intro-lede">A living classroom prototype that senses the room, welcomes people in, and saves energy as the day unfolds.</p>
+        <div class="intro-cta-row">
+          <!-- From Uiverse.io by Creatlydev - https://uiverse.io/Creatlydev/silly-cat-86 | MIT License, Copyright (c) Creatlydev (Samir Yangua Ruiz). Adapted; walkthrough action is preserved. -->
+          <button class="enter-button" id="begin-experience" type="button">
+            <span>Walk into class</span><span class="button__icon-wrapper" aria-hidden="true"><svg viewBox="0 0 14 15" class="button__icon-svg"><path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z" fill="currentColor" /></svg><svg viewBox="0 0 14 15" class="button__icon-svg button__icon-svg--copy"><path d="M13.376 11.552l-.264-10.44-10.44-.24.024 2.28 6.96-.048L.2 12.56l1.488 1.488 9.432-9.432-.048 6.912 2.304.024z" fill="currentColor" /></svg></span>
+          </button>
+          <button class="skip-button" id="skip-experience" type="button">Skip the intro <span aria-hidden="true">→</span></button>
+        </div>
+        <!-- From Uiverse.io by ayyjayy2 - https://uiverse.io/ayyjayy2/sour-dog-94 | MIT License, Copyright (c) andrew-demchenk0, ayyjayy2 (Alayna Johnston). Adapted to real showcase routes only; no fake password login is added. -->
+        <div class="intro-auth access-card">
+          <div class="access-heading"><span class="auth-label">SHOWCASE ACCESS</span><span class="access-caption">Choose how to enter the room</span></div>
+          <!-- From Uiverse.io by xbeat_5120 - https://uiverse.io/xbeat_5120/mean-grasshopper-67 | MIT License, Copyright (c) xbeat_5120 (X Beat Ghost.611). This optional name is local demo personalization, never a credential. -->
+          <div class="uiverse-pixel-input-wrapper"><label class="uiverse-pixel-label" for="operator-name">DEMO NAME <span>OPTIONAL</span></label><input class="uiverse-pixel-input" placeholder="Enter your name..." id="operator-name" type="text" maxlength="24" autocomplete="nickname" /></div>
+          <div id="google-signin-slot" class="google-slot"></div>
+          <div class="access-actions"><button class="auth-button" id="teacher-login" type="button">Teacher route</button><button class="auth-button auth-button-quiet" id="developer-login" type="button">Developer demo</button></div>
+        </div>
+        <p class="auth-note" id="auth-note" aria-live="polite">Choose a route in, or start the walk-through above.</p>
+      </div>
+      <!-- From Uiverse.io by zeeshan_2112 - https://uiverse.io/zeeshan_2112/shy-rattlesnake-3 | MIT License, Copyright (c) zeeshan_2112 (zeeshan khan). Ticket sample values are replaced with classroom status. -->
+      <aside class="ticket-canvas" aria-label="MITS classroom demo pass"><div class="ticket-wrapper"><div class="ticket">
+        <div class="t-main"><div class="t-content">
+          <div class="t-header"><div class="t-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>MITS / MĀDHAV</div><div class="t-type">LIVE DEMO</div></div>
+          <div class="t-title">MITS<br />IoT Pass</div><div class="t-subtitle">Digital Brain · Gwalior</div>
+          <div class="t-details"><div class="t-detail-item"><span class="t-label">Name</span><span class="t-value">VIVEK DHAKAR</span></div><div class="t-detail-item"><span class="t-label">Date</span><span class="t-value">Nov 25, 2026</span></div><div class="t-detail-item"><span class="t-label">College</span><span class="t-value">Madhav Institute Of Technology &amp; Science</span></div><div class="t-detail-item"><span class="t-label">Branch</span><span class="t-value">Internet Of Things</span></div></div>
+        </div><div class="t-perforation"><div class="t-perf-line"></div></div></div>
+        <div class="t-stub"><div class="t-barcode-container"><div class="t-barcode" aria-hidden="true"></div><div class="t-barcode-id">BTIO26O1075</div></div><div class="t-admit"><div class="t-admit-text">Roll No</div><div class="t-admit-num">75</div></div></div>
+      </div></div></aside>
+      <div class="intro-bottom">
+        <div class="scroll-cue"><span class="scroll-cue-line"></span><span>THE CLASSROOM IS WAITING</span></div>
+        <p>DEVELOPED BY VIVEK DHAKAR <span>·</span> IOT STUDENT</p>
+      </div>
+      <div class="scene-label scene-label-door"><span>01</span> SIDE-WALL CLASSROOM DOOR</div>
+      <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound" title="Ambient sound is off">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path class="sound-wave" d="M16 9a4 4 0 0 1 0 6m2.5-8.5a8 8 0 0 1 0 11"/><path class="sound-x" d="m17 9 4 6m0-6-4 6"/></svg>
+      </button>
+    </section>
+
+    <section class="dashboard" id="dashboard" aria-label="Smart classroom dashboard" aria-hidden="true">
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-dot"></span> CLASSROOM / LIVE SYSTEM</p>
+          <h2>Good systems make <em>quiet work.</em></h2>
+        </div>
+        <div class="session-chip"><span class="session-pulse"></span><span id="system-state-label">DEMO SYSTEM READY</span></div>
+      </div>
+
+      <div class="dashboard-layout">
+        <div class="main-column">
+          <section class="scene-card panel" id="scene-card" aria-label="Interactive 3D classroom">
+            <div class="scene-card-top">
+              <div><span class="section-kicker">THE ROOM</span><h3>Classroom 01 <span>· 3D view</span></h3></div>
+              <div class="scene-controls" aria-label="3D camera controls">
+                <button class="text-button door-control" id="door-toggle" type="button" aria-pressed="false">Open door</button>
+                <button class="icon-button" id="zoom-out" type="button" aria-label="Zoom out">−</button>
+                <button class="icon-button" id="zoom-in" type="button" aria-label="Zoom in">+</button>
+                <button class="text-button" id="reset-view" type="button">Reset view</button>
+              </div>
+            </div>
+            <div class="scene-viewport" id="scene-viewport">
+              <div class="scene-hud scene-hud-left"><span class="hud-label">ROOM STATE</span><strong id="scene-occupancy">EMPTY</strong></div>
+              <div class="scene-hud scene-hud-right"><span class="hud-label">AIR</span><strong id="scene-temperature">28.0° <small>C</small></strong></div>
+              <div class="scene-hover-note">DRAG TO LOOK AROUND <span>·</span> CLICK A DEVICE TO CONTROL IT</div>
+              <div class="scene-legend"><span><i class="legend-warm"></i> LIGHT</span><span><i class="legend-cool"></i> CLIMATE</span></div>
+            </div>
+            <div class="scene-card-foot"><span><i class="scene-status-dot"></i> LIVE 3D MODEL</span><span>PROCEDURAL SCENE <b>·</b> NO MODEL DOWNLOAD</span></div>
+          </section>
+
+          <div class="lower-grid">
+            <section class="panel camera-card" id="camera-card">
+              <div class="panel-heading">
+                <div><span class="section-kicker">PRESENCE / 02</span><h3>Room camera</h3></div>
+                <span class="status-pill" id="camera-status"><i></i> OFF</span>
+              </div>
+              <div class="camera-view">
+                <video id="camera-video" autoplay muted playsinline></video>
+                <canvas id="camera-overlay"></canvas>
+                <div class="camera-placeholder" id="camera-placeholder"><span class="camera-reticle">+</span><strong>Presence, without storing footage.</strong><small>Detection runs locally in this browser.</small></div>
+                <div class="camera-count"><span id="camera-count">0</span><small>PEOPLE</small></div>
+              </div>
+              <div class="camera-foot"><button class="button-outline" id="camera-toggle" type="button">Start camera</button><span id="model-status">Model idle</span></div>
+              <div class="detector-progress" aria-hidden="true"><i></i></div>
+            </section>
+
+            <section class="panel impact-card" id="impact-card">
+              <div class="panel-heading">
+                <div><span class="section-kicker">ENERGY / 03</span><h3>Less left running.</h3></div>
+                <span class="estimate-tag">ESTIMATE</span>
+              </div>
+              <p class="impact-copy">Compared with a room where every device stayed on for the entire session.</p>
+              <div class="impact-stat"><span>Estimated energy saved</span><strong id="energy-saved">0.00 <small>kWh</small></strong></div>
+              <div class="impact-stat"><span>Estimated cost avoided</span><strong id="money-saved">₹0.00</strong></div>
+              <div class="energy-progress"><span id="energy-progress"></span></div>
+              <div class="energy-foot"><span>USED <b id="energy-used">0.00 kWh</b></span><span>SESSION <b id="session-time">00:00</b></span></div>
+            </section>
+          </div>
+
+          <section class="panel log-card" id="log-card">
+            <div class="panel-heading"><div><span class="section-kicker">SYSTEM STORY / 04</span><h3>Automation log</h3></div><button class="text-button" id="clear-log" type="button">Clear</button></div>
+            <ol class="log-list" id="log-list" aria-live="polite"></ol>
+          </section>
+        </div>
+
+        <aside class="control-column" id="control-column">
+          <!-- From Uiverse.io by monkey_8812 - https://uiverse.io/monkey_8812/curly-moth-56 | MIT License, Copyright (c) monkey_8812 (Monkey Z). Glass/orbit treatment adapted to live room metrics. -->
+          <section class="panel status-card room-pass-card">
+            <div class="panel-heading"><div><span class="section-kicker">RIGHT NOW</span><h3>Room status</h3></div><span class="status-beacon" id="room-beacon"></span></div>
+            <div class="status-hero"><strong id="occupancy-value">EMPTY</strong><span id="occupancy-source">MANUAL / DEMO</span></div>
+            <div class="status-metrics">
+              <div><span>PEOPLE</span><strong id="people-value">0</strong></div>
+              <div><span>TEMPERATURE</span><strong id="temperature-value">28.0<span>°C</span></strong></div>
+              <div><span>AUTO-OFF</span><strong id="timer-value">—</strong></div>
+            </div>
+            <button class="simulate-button" id="simulate-occupancy" type="button">＋ Simulate arrival</button>
+          </section>
+
+          <section class="panel controls-card">
+            <div class="panel-heading"><div><span class="section-kicker">AUTOMATION</span><h3>Room controls</h3></div><span class="mode-caption" id="mode-caption">AUTO</span></div>
+            <!-- From Uiverse.io by Uncannypotato69 - https://uiverse.io/Uncannypotato69/afraid-turtle-19 | MIT License, Copyright (c) Uncannypotato69. Synchronized to the existing Automatic/Manual mode state. -->
+            <div class="mode-switch" id="mode-switch"><label class="mode-choice" for="mode-toggle"><span><strong>Manual override</strong><small id="mode-word">OFF · AUTOMATIC</small></span><span class="uiverse-check"><input id="mode-toggle" type="checkbox" aria-label="Enable manual control mode" /><span class="uiverse-check-face"></span><svg class="uiverse-checkmark" viewBox="-3.2 -3.2 38.4 38.4" aria-hidden="true"><path d="M5 16.577l2.194-2.195 5.486 5.484L24.804 7.743 27 9.937l-14.32 14.32z" /></svg><svg class="uiverse-cross" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M697.4 759.2l61.8-61.8L573.8 512l185.4-185.4-61.8-61.8L512 450.2 326.6 264.8l-61.8 61.8L450.2 512 264.8 697.4l61.8 61.8L512 573.8z" /></svg></span></label></div>
+            <p class="control-explain" id="mode-explain">Presence powers the room. It winds down when the room is empty.</p>
+            <div class="device-list">
+              <!-- From Uiverse.io by r7chardgh - https://uiverse.io/r7chardgh/dry-rabbit-69 | MIT License, Copyright (c) r7chardgh (Richard Tsang). Each 3D switch keeps the original light/fan/AC device input and serial action. -->
+              <div class="device-row" data-device-row="light"><span class="device-glyph glyph-light">✳</span><div class="device-info"><strong>Ambient lights</strong><small id="light-note">Warm ceiling panels</small></div><span class="device-state" id="light-state">OFF</span><label class="uiverse-device-switch"><input class="cb" id="light-toggle" type="checkbox" disabled aria-label="Ambient lights" /><span class="uiverse-device-toggle"><span class="left">OFF</span><span class="right">ON</span></span></label></div>
+              <div class="device-row" data-device-row="fan"><span class="device-glyph glyph-fan">◌</span><div class="device-info"><strong>Ceiling fan</strong><small id="fan-note">Air circulation</small></div><span class="device-state" id="fan-state">OFF</span><label class="uiverse-device-switch"><input class="cb" id="fan-toggle" type="checkbox" disabled aria-label="Ceiling fan" /><span class="uiverse-device-toggle"><span class="left">OFF</span><span class="right">ON</span></span></label></div>
+              <div class="device-row" data-device-row="ac"><span class="device-glyph glyph-ac">❄</span><div class="device-info"><strong>Air conditioning</strong><small id="ac-note">Relay ready · thermostat</small></div><span class="device-state" id="ac-state">OFF</span><label class="uiverse-device-switch"><input class="cb" id="ac-toggle" type="checkbox" disabled aria-label="Air conditioning" /><span class="uiverse-device-toggle"><span class="left">OFF</span><span class="right">ON</span></span></label></div>
+            </div>
+            <div class="slider-group"><label for="temperature-slider"><span id="temperature-mode-label">DEMO TEMPERATURE</span><strong><span id="temperature-readout">28</span>°C</strong></label><input id="temperature-slider" type="range" min="16" max="40" value="28" /></div>
+            <div class="slider-group"><label for="setpoint-slider">AC SETPOINT <strong><span id="setpoint-readout">26</span>°C</strong></label><input id="setpoint-slider" type="range" min="20" max="32" value="26" /></div>
+            <div class="slider-group slider-group-last"><label for="delay-slider">EMPTY ROOM DELAY <strong><span id="delay-readout">12</span>s</strong></label><input id="delay-slider" type="range" min="5" max="60" value="12" /></div>
+          </section>
+
+          <details class="panel hardware-card" id="hardware-card">
+            <summary><span><span class="section-kicker">HARDWARE / 05</span><strong>Connect the model</strong></span><span class="details-chevron">+</span></summary>
+            <div class="hardware-content">
+              <p>USB serial supports Arduino at 9600 baud or ESP32 at 115200. Reads <code>TEMP:28.4</code> and <code>MOTION:1</code>; sends one command per line.</p>
+              <label class="select-label" for="board-speed">BOARD TYPE</label>
+              <select id="board-speed"><option value="115200">ESP32 · 115200 baud</option><option value="9600">Arduino · 9600 baud</option><option value="115200">Other · 115200 baud</option></select>
+              <button class="button-outline hardware-connect" id="serial-connect" type="button">Connect USB board</button>
+              <div class="hardware-status"><span>LINK</span><strong id="serial-status">NOT CONNECTED</strong></div>
+            </div>
+          </details>
+
+          <details class="panel tuning-card" id="tuning-card">
+            <summary><span><span class="section-kicker">TUNING / 06</span><strong>Energy assumptions</strong></span><span class="details-chevron">+</span></summary>
+            <div class="hardware-content tuning-content">
+              <p>Estimated values only; no physical energy meter is connected.</p>
+              <label class="number-label" for="light-watts">LIGHT WATTS<input id="light-watts" type="number" min="1" value="36" /></label>
+              <label class="number-label" for="fan-watts">FAN WATTS<input id="fan-watts" type="number" min="1" value="75" /></label>
+              <label class="number-label" for="ac-watts">AC WATTS<input id="ac-watts" type="number" min="1" value="1200" /></label>
+              <label class="number-label" for="tariff">TARIFF / ₹ PER kWh<input id="tariff" type="number" min="0" step="0.5" value="8" /></label>
+            </div>
+          </details>
+        </aside>
+      </div>
+      <footer class="dashboard-footer"><span>MITS GWALIOR <i>·</i> CLASSROOM DIGITAL BRAIN</span><span>BUILT TO SHOW WHAT A SMALL SENSOR CAN DO</span><button id="restart-walkthrough" type="button">REPLAY THE WALK-IN ↗</button></footer>
+    </section>
+  </main>
+
+  <div class="walkthrough-caption" id="walkthrough-caption" aria-live="polite"><span class="caption-index">01</span><span id="caption-text">THE CLASSROOM DOOR OPENS</span><span class="caption-line"></span><button id="skip-walkthrough" type="button">SKIP</button></div>
+  <!-- From Uiverse.io by nima-mollazadeh - https://uiverse.io/nima-mollazadeh/itchy-bulldog-59 | MIT License, Copyright (c) nima-mollazadeh (XoCode). Hourglass closes on the first rendered room frame. -->
+  <!-- Uiverse.io by KSAplay - https://uiverse.io/KSAplay/shy-rat-62: adapted indeterminate progress bar for the real initial scene render. -->
+  <div class="loading-cover" id="loading-cover" role="status" aria-live="polite"><svg class="studio-hourglass" role="img" aria-label="Preparing the 3D classroom" viewBox="0 0 56 56"><g transform="translate(13.75,9.25)"><path d="M1.5 2h21.5c0 0-.5 6.5-4 10-3 3.5-5.5 1.5-5.5 4.75S16 18.5 19 22s4 9.5 4 9.5H1.5s.5-6.5 4-10 5.5-1.5 5.5-4.75S8.5 15.5 5.5 12 1.5 2 1.5 2Z" fill="none" stroke="currentColor" stroke-width="1.3" /><path d="M4 5h17M4 28h17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /><path class="sand-top" d="M6 7h13c-.5 4-2.5 6-6.5 8-4-2-6-4-6.5-8Z" fill="currentColor" /><path class="sand-bottom" d="M6 26h13c-.5-4-2.5-6-6.5-8-4 2-6 4-6.5 8Z" fill="currentColor" opacity=".88" /><path class="sand-stream" d="M12.5 15v7" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1 2" /></g><circle class="hourglass-orbit" cx="28" cy="28" r="25" fill="none" stroke="currentColor" stroke-width=".65" stroke-dasharray="42 116" /></svg><p>SETTING THE ROOM</p><span class="loading-progress" aria-hidden="true"><i></i></span></div>
+
+  <script defer src="script.js?v=4"></script>
+</body>
+</html>

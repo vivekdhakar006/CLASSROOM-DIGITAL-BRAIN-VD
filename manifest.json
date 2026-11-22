@@ -1,0 +1,19 @@
+{
+  "name": "Classroom Digital Brain — Codex Showcase",
+  "short_name": "Classroom Codex",
+  "description": "A cinematic smart classroom experience from MITS Gwalior.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080b09",
+  "theme_color": "#080b09",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
