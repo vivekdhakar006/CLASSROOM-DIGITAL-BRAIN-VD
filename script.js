@@ -816,10 +816,12 @@
     const visibleLine=message.replace(/[^\x20-\x7E°]/g,"·").replace(/\s+/g," ").slice(0,70);
     ui.serialLastData.textContent=visibleLine;
     ui.serialLastData.title=message;
-    const tempMatch=message.match(/\b(?:TEMP(?:ERATURE)?|T)\s*(?:[:=]\s*|\s+)(-?\d+(?:\.\d+)?)/i)
-      || message.match(/^\s*(-?\d{1,2}\.\d{1,2})\s*(?:°?\s*C)?\s*$/i);
+    const tempMatch=message.match(/\b(?:TEMP(?:ERATURE)?|DHT11?)\b[^\d+-]{0,16}(-?\d+(?:[.,]\d+)?)/i)
+      || message.match(/\bT\s*[:=]\s*(-?\d+(?:[.,]\d+)?)/i)
+      || message.match(/^\s*(-?\d{1,2}[.,]\d{1,2})\s*(?:°?\s*C)?\s*$/i);
     if(tempMatch){
-      const value=Number(tempMatch[1]);
+      // Some serial monitors/firmware use comma as the decimal separator.
+      const value=Number(tempMatch[1].replace(",", "."));
       if(Number.isFinite(value)&&value>=-20&&value<=80){
         serialLastTemperatureAt=Date.now();
         state.temperature=value;
