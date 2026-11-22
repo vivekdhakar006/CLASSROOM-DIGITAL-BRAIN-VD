@@ -32,7 +32,7 @@
     cameraOverlay: byId("camera-overlay"), cameraPlaceholder: byId("camera-placeholder"),
     cameraStatus: byId("camera-status"), cameraButton: byId("camera-toggle"),
     cameraCount: byId("camera-count"), modelStatus: byId("model-status"),
-    serialButton: byId("serial-connect"), serialStatus: byId("serial-status"),
+    serialButton: byId("serial-connect"), serialStatus: byId("serial-status"), serialLastData: byId("serial-last-data"),
     boardSpeed: byId("board-speed"), energyUsed: byId("energy-used"),
     energySaved: byId("energy-saved"), moneySaved: byId("money-saved"),
     energyProgress: byId("energy-progress"), sessionTime: byId("session-time"),
@@ -785,15 +785,22 @@
      Web Serial: reads TEMP:/MOTION: and sends relay commands.
      ------------------------------------------------------------ */
   let serialPort=null, serialReader=null, serialReadTask=null, serialQueue=Promise.resolve(), boardMotion=false;
+  let serialWatchdog=null, serialConnectedAt=0, serialLastByteAt=0, serialLastTemperatureAt=0;
   async function readSerial(port) {
     if(!port.readable)return;
     const reader=port.readable.getReader(); serialReader=reader; const decoder=new TextDecoder(); let buffer="";
     try {
       while(true){
         const {value,done}=await reader.read(); if(done)break;
+        if(value?.length) serialLastByteAt=Date.now();
         buffer+=decoder.decode(value,{stream:true});
         const lines=buffer.split(/\r\n|\n|\r/);
         buffer=lines.pop() || "";
+        if(buffer.trim()){
+          const partial=buffer.replace(/[^\x20-\x7E°]/g,"·").replace(/\s+/g," ").slice(0,70);
+          ui.serialLastData.textContent=partial;
+          if(/\b(?:TEMP(?:ERATURE)?|T)\s*[:=]\s*-?\d+(?:\.\d+)?/i.test(buffer))handleSerialLine(buffer);
+        }
         lines.forEach(handleSerialLine);
       }
       buffer+=decoder.decode(); if(buffer.trim())handleSerialLine(buffer);
@@ -801,23 +808,30 @@
     finally { try{reader.releaseLock();}catch(error){} if(serialReader===reader)serialReader=null; }
   }
   function handleSerialLine(line) {
-    // Accept firmware lines, Serial Monitor prefixes/units, and CR-only line endings.
+    // Show the inbound line to diagnose baud mismatches and firmware output formats.
     const message=line.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\uFEFF/g, "").trim();
-    const tempMatch=message.match(/\bTEMP(?:ERATURE)?\s*[:=]\s*(-?\d+(?:\.\d+)?)/i);
+    if(!message)return;
+    const visibleLine=message.replace(/[^\x20-\x7E°]/g,"·").replace(/\s+/g," ").slice(0,70);
+    ui.serialLastData.textContent=visibleLine;
+    ui.serialLastData.title=message;
+    const tempMatch=message.match(/\b(?:TEMP(?:ERATURE)?|T)\s*[:=]\s*(-?\d+(?:\.\d+)?)/i)
+      || message.match(/^\s*(-?\d{1,2}\.\d{1,2})\s*(?:°?\s*C)?\s*$/i);
     if(tempMatch){
       const value=Number(tempMatch[1]);
       if(Number.isFinite(value)&&value>=-20&&value<=80){
+        serialLastTemperatureAt=Date.now();
         state.temperature=value;
         state.sensorTemperature=true;
         byId("temperature-mode-label").textContent="LIVE SENSOR";
         byId("temperature-readout").textContent=value.toFixed(1);
         byId("temperature-slider").value=clamp(Math.round(value),16,40);
-        ui.serialStatus.textContent="CONNECTED · LIVE TELEMETRY";
+        ui.serialStatus.textContent=`CONNECTED · LIVE ${value.toFixed(1)}°C`;
         refreshDashboard();
         checkClimate();
       }
     }
     const motionMatch=message.match(/\bMOTION\s*[:=]\s*([01])\b/i);
+    if(!tempMatch&&serialPort)ui.serialStatus.textContent=motionMatch?"CONNECTED · PIR ONLY":"CONNECTED · CHECK TEMP FORMAT";
     if(motionMatch){boardMotion=motionMatch[1]==="1";if(!cameraStream){const count=boardMotion?1:0;state.source="BOARD / PIR";setPeopleCount(count,state.source);if(boardMotion!==state.occupied)setOccupied(boardMotion,"PIR sensor");}}
   }
   async function connectSerial() {
@@ -825,19 +839,33 @@
     let port=null;
     try{
       port=await navigator.serial.requestPort();await port.open({baudRate:Number(ui.boardSpeed.value)||115200});serialPort=port;
+      serialConnectedAt=Date.now();serialLastByteAt=0;serialLastTemperatureAt=0;
+      ui.serialLastData.textContent="WAITING FOR SERIAL DATA";ui.serialLastData.title="";
       ui.serialStatus.textContent=port.readable?"CONNECTED · LISTENING":"CONNECTED · OUTPUT ONLY";ui.serialStatus.classList.add("connected");
       ui.serialButton.textContent="Disconnect board";state.source=cameraStream?"CAMERA":"BOARD / WAITING";byId("temperature-mode-label").textContent=state.sensorTemperature?"LAST SENSOR":"WAITING FOR SENSOR";byId("ac-note").textContent="Relay linked · thermostat";refreshDashboard();
       serialReadTask=readSerial(port);
+      if(serialWatchdog)clearInterval(serialWatchdog);
+      serialWatchdog=setInterval(()=>{
+        if(serialPort!==port)return;
+        const now=Date.now();
+        if(!serialLastByteAt&&now-serialConnectedAt>5000){
+          ui.serialStatus.textContent="CONNECTED · NO DATA";
+          ui.serialLastData.textContent="No bytes. Check baud rate and close Serial Monitor.";
+        }else if(serialLastByteAt&&(!serialLastTemperatureAt||now-serialLastTemperatureAt>7000)){
+          ui.serialStatus.textContent="CONNECTED · NO TEMP LINE";
+        }
+      },1500);
       sendSerialLine(`LIGHT_${state.light?"ON":"OFF"}`);sendSerialLine(`FAN_${state.fan?"ON":"OFF"}`);sendSerialLine(`AC_${state.ac?"ON":"OFF"}`);
       logEvent("USB board connected. Relay states synchronised.");
-    }catch(error){if(port?.opened){try{await port.close();}catch(closeError){}}serialPort=null;ui.serialStatus.textContent="NOT CONNECTED";ui.serialStatus.classList.remove("connected");logEvent("USB connection cancelled or failed.","warn");}
+    }catch(error){if(port?.opened){try{await port.close();}catch(closeError){}}serialPort=null;ui.serialStatus.textContent="CONNECT FAILED";ui.serialStatus.classList.remove("connected");ui.serialLastData.textContent=String(error?.message||error).slice(0,70);logEvent(`USB connection failed · ${String(error?.message||error).slice(0,90)}`,"warn");}
   }
   async function disconnectSerial() {
     const port=serialPort;serialPort=null;
+    if(serialWatchdog){clearInterval(serialWatchdog);serialWatchdog=null;}
     if(serialReader){try{await serialReader.cancel();}catch(error){}}
     if(serialReadTask)await serialReadTask;serialReadTask=null;
     if(port){try{await port.close();}catch(error){}}
-    ui.serialStatus.textContent="NOT CONNECTED";ui.serialStatus.classList.remove("connected");ui.serialButton.textContent="Connect USB board";byId("ac-note").textContent="Relay ready · thermostat";
+    ui.serialStatus.textContent="NOT CONNECTED";ui.serialStatus.classList.remove("connected");ui.serialButton.textContent="Connect USB board";ui.serialLastData.textContent="BOARD DISCONNECTED";byId("ac-note").textContent="Relay ready · thermostat";
     byId("temperature-mode-label").textContent=state.sensorTemperature?"LAST SENSOR":"SIMULATED TEMPERATURE";
     if(!cameraStream){state.source="MANUAL / SIMULATION";setPeopleCount(0,state.source);if(state.occupied)setOccupied(false,"board disconnected");}
     else {state.source="CAMERA";setPeopleCount(stableCameraCount,state.source);if((stableCameraCount>0)!==state.occupied)setOccupied(stableCameraCount>0,"camera detection resumed");}
@@ -1139,3 +1167,4 @@
   logEvent("System initialized · waiting for a classroom entry.");
   requestAnimationFrame(animate);
 })();
+
