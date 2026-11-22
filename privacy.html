@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#080b09" />
+  <meta name="description" content="Privacy information for Classroom Digital Brain, a smart classroom project by MITS Gwalior." />
+  <title>Privacy · Classroom Digital Brain</title>
+  <link rel="icon" href="assets/classroom-digital-brain-logo.svg" type="image/svg+xml" />
+  <style>
+    :root{color-scheme:dark;--ink:#f2ead9;--muted:#a4aa9e;--moss:#c7d9a7;--line:rgba(232,226,207,.15)}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#203529 0,transparent 42%),#080b09;color:var(--ink);font:16px/1.7 Manrope,Inter,Arial,sans-serif}
+    main{width:min(860px,calc(100% - 40px));margin:0 auto;padding:42px 0 80px}.top{display:flex;align-items:center;gap:14px;padding-bottom:22px;border-bottom:1px solid var(--line)}.top img{width:50px;height:50px}.top a,.back{color:var(--moss);text-decoration:none}.eyebrow{text-transform:uppercase;letter-spacing:.18em;color:var(--muted);font-size:11px;margin:0}h1{font-size:clamp(38px,7vw,64px);line-height:1.02;letter-spacing:-.05em;margin:52px 0 12px}h2{font-size:21px;margin:34px 0 8px;color:var(--moss)}p,li{color:#d1d3c8}.lede{font-size:19px;color:var(--muted)}.updated{font-size:12px;color:var(--muted)}section{padding-top:1px}a{color:var(--moss)}footer{border-top:1px solid var(--line);margin-top:48px;padding-top:20px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top"><img src="assets/classroom-digital-brain-logo.svg" alt="" /><div><p class="eyebrow">MITS · GWALIOR</p><a href="./">Classroom Digital Brain</a></div></div>
+    <h1>Privacy policy</h1>
+    <p class="lede">What the Classroom Digital Brain website processes when you use its smart-classroom showcase.</p>
+    <p class="updated">Last updated: November 22, 2026</p>
+    <section>
+      <h2>About this project</h2>
+      <p>Classroom Digital Brain is an educational IoT project by Vivek Dhakar at Madhav Institute of Technology &amp; Science, Gwalior. It demonstrates classroom occupancy sensing, temperature display, device control, and estimated energy savings.</p>
+      <h2>Google sign-in</h2>
+      <p>If you choose Google sign-in, Firebase Authentication and Google process your sign-in and maintain an authentication session. This page receives the Firebase-authenticated account profile to show your email address and to open the local classroom experience. The project does not operate a server-side account database and does not send camera video or serial data to Firebase.</p>
+      <p>The sign-in check protects the experience flow in this browser. Because this is a static site, its dashboard code and local camera/serial controls are delivered to the visitor's device and are not protected server resources. Do not use this site as a gate for confidential information or privileged hardware access.</p>
+      <h2>Camera and people detection</h2>
+      <p>If you enable the camera, video frames are processed in your browser by the people-detection model. This project does not upload or record camera video. The detected count is used locally to update the room display and automation.</p>
+      <h2>Connected classroom hardware</h2>
+      <p>If you connect a compatible board using Web Serial, the browser exchanges temperature, motion, and device commands with the selected hardware. This project does not receive that serial data on a server.</p>
+      <h2>Local storage and caching</h2>
+      <p>The site saves your selected color theme in your browser's local storage and uses a service worker to cache website files for the installable experience. The site does not use its own server-side analytics or account database.</p>
+      <h2>Third-party services</h2>
+      <p>The page loads Firebase Authentication, Google Fonts, Three.js, and the TensorFlow.js/COCO-SSD libraries from their configured providers. Those services may receive standard connection information such as your IP address and browser request metadata when your browser loads their resources. Their own privacy terms apply to their processing.</p>
+      <h2>Your choices</h2>
+      <p>You can decline Google sign-in, camera access, or serial-device access. You can clear this site's local storage and cached files through your browser settings. Camera and serial features are used only after you initiate them.</p>
+      <h2>Contact</h2>
+      <p>For privacy questions, use the support email displayed on the Google sign-in consent screen for this project.</p>
+    </section>
+    <footer><a class="back" href="./">Return to Classroom Digital Brain</a><span> · Educational project by Vivek Dhakar</span></footer>
+  </main>
+</body>
+</html>

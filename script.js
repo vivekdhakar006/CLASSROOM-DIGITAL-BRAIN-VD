@@ -39,16 +39,14 @@
     log: byId("log-list"),
   };
 
-  // Keep this public client ID as a placeholder. Google sign-in is optional for the demo.
-  const GOOGLE_CLIENT_ID = "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com";
-  // This email-domain role label is for the showcase only; it is not authentication security.
-  const TEACHER_EMAIL_DOMAIN = "mitsgwalior.ac.in";
+  let googleAuthenticated = false;
+  let signedInEmail = "";
 
   const state = {
     mode: "auto", occupied: false, people: 0, temperature: 28,
     setpoint: 26, delay: 12, remaining: null,
     light: false, fan: false, ac: false,
-    source: "MANUAL / DEMO", sensorTemperature: false,
+    source: "MANUAL / SIMULATION", sensorTemperature: false,
     lightWatts: 36, fanWatts: 75, acWatts: 1200, tariff: 8,
     onSeconds: { light: 0, fan: 0, ac: 0 },
     startTime: Date.now(), logCount: 0,
@@ -570,14 +568,14 @@
   ["light","fan","ac"].forEach((device)=>byId(`${device}-toggle`).addEventListener("change",(event)=>setDevice(device,event.target.checked,"manual override")));
   byId("simulate-occupancy").addEventListener("click",()=>{
     const occupied = !state.occupied;
-    setPeopleCount(occupied ? Math.max(1,state.people) : 0,"MANUAL / DEMO");
+    setPeopleCount(occupied ? Math.max(1,state.people) : 0,"MANUAL / SIMULATION");
     setOccupied(occupied,"manual simulation");
     byId("simulate-occupancy").textContent = occupied ? "− Simulate room empty" : "＋ Simulate arrival";
   });
   byId("temperature-slider").addEventListener("input",(event)=>{
     state.temperature = Number(event.target.value); state.sensorTemperature = false;
     byId("temperature-readout").textContent = String(state.temperature);
-    byId("temperature-mode-label").textContent="DEMO TEMPERATURE";
+    byId("temperature-mode-label").textContent="SIMULATED TEMPERATURE";
     refreshDashboard(); checkClimate();
   });
   byId("setpoint-slider").addEventListener("input",(event)=>{
@@ -712,7 +710,7 @@
 
   async function startCamera() {
     if (cameraStream) return;
-    if (!navigator.mediaDevices?.getUserMedia) { logEvent("Camera needs localhost or HTTPS. Use the demo arrival control meanwhile.","warn"); return; }
+    if (!navigator.mediaDevices?.getUserMedia) { logEvent("Camera needs localhost or HTTPS. Use the arrival simulation meanwhile.","warn"); return; }
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});
       ui.cameraVideo.srcObject = cameraStream; await ui.cameraVideo.play();
@@ -746,7 +744,7 @@
     stableCameraCount = 0;
     ui.cameraPlaceholder.hidden=false; ui.cameraStatus.classList.remove("on"); ui.cameraStatus.innerHTML="<i></i> OFF";
     ui.cameraButton.textContent="Start camera"; ui.modelStatus.textContent="Model idle";
-    if (!serialPort) { state.source="MANUAL / DEMO"; setPeopleCount(0,state.source); if(state.occupied)setOccupied(false,"camera stopped"); }
+    if (!serialPort) { state.source="MANUAL / SIMULATION"; setPeopleCount(0,state.source); if(state.occupied)setOccupied(false,"camera stopped"); }
     else { state.source="BOARD / PIR";setPeopleCount(boardMotion?1:0,state.source);if(boardMotion!==state.occupied)setOccupied(boardMotion,"camera stopped"); }
     if(log) logEvent("Camera detection stopped.","off");
   }
@@ -809,8 +807,8 @@
     if(serialReadTask)await serialReadTask;serialReadTask=null;
     if(port){try{await port.close();}catch(error){}}
     ui.serialStatus.textContent="NOT CONNECTED";ui.serialStatus.classList.remove("connected");ui.serialButton.textContent="Connect USB board";byId("ac-note").textContent="Relay ready · thermostat";
-    byId("temperature-mode-label").textContent=state.sensorTemperature?"LAST SENSOR":"DEMO TEMPERATURE";
-    if(!cameraStream){state.source="MANUAL / DEMO";setPeopleCount(0,state.source);if(state.occupied)setOccupied(false,"board disconnected");}
+    byId("temperature-mode-label").textContent=state.sensorTemperature?"LAST SENSOR":"SIMULATED TEMPERATURE";
+    if(!cameraStream){state.source="MANUAL / SIMULATION";setPeopleCount(0,state.source);if(state.occupied)setOccupied(false,"board disconnected");}
     else {state.source="CAMERA";setPeopleCount(stableCameraCount,state.source);if((stableCameraCount>0)!==state.occupied)setOccupied(stableCameraCount>0,"camera detection resumed");}
     refreshDashboard();logEvent("USB board disconnected.","off");
   }
@@ -870,6 +868,7 @@
   }
   function startWalkthrough() {
     if(introStart!==null)return;
+    if(!googleAuthenticated){ui.authNote.textContent="Sign in with Google before opening the classroom.";return;}
     if(reduceMotion){completeWalkthrough(true);return;}
     ui.authNote.textContent="Follow the walk-in. The system will wake when someone enters.";
     ui.intro.classList.add("walking");ui.introCopy.classList.add("walking");ui.caption.classList.add("active");
@@ -879,13 +878,14 @@
   }
   function completeWalkthrough(skip=false) {
     if(walkthroughFinished)return;
+    if(!googleAuthenticated){ui.authNote.textContent="Sign in with Google before opening the classroom.";return;}
     walkthroughFinished=true;introStart=null;setDoorOpen(true);
     walkingStudent.visible=false;
-    setPeopleCount(1,"DEMO WALK-IN");setOccupied(true,"student entered the room");
+    setPeopleCount(1,"INTRO WALK-IN");setOccupied(true,"student entered the room");
     // Finish the cinematic entry with the room's light and fan safely off.
     if(state.light)setDevice("light",false,"intro walk-in finished");
     if(state.fan)setDevice("fan",false,"intro walk-in finished");
-    if(skip)logEvent("Walk-through skipped · demo room is ready.");
+    if(skip)logEvent("Walk-through skipped · classroom controls are ready.");
     ui.caption.classList.remove("active");ui.intro.classList.add("leaving");
     ui.dashboard.classList.add("active");ui.dashboard.setAttribute("aria-hidden","false");
     revealDashboardPanels();
@@ -907,19 +907,6 @@
   });
   ui.skip.addEventListener("click",()=>completeWalkthrough(true));
   ui.skipWalkthrough.addEventListener("click",()=>completeWalkthrough(true));
-  ui.developerLogin = byId("developer-login");
-  ui.developerLogin.addEventListener("click",()=>{
-    const demoName=byId("operator-name").value.trim();
-    ui.authNote.textContent=demoName?`Welcome, ${demoName}. Developer demo · no sign-in performed.`:"Developer demo · no sign-in performed.";
-    byId("system-state-label").textContent=demoName?`${demoName.slice(0,18).toUpperCase()} · DEMO`:"DEVELOPER DEMO";
-    startWalkthrough();
-  });
-  byId("teacher-login").addEventListener("click",()=>{
-    ui.authNote.textContent=GOOGLE_CLIENT_ID.startsWith("PASTE_")
-      ? `Teacher sign-in is a demo role. Add a Google Client ID, then use your @${TEACHER_EMAIL_DOMAIN} account.`
-      : `Use Google sign-in with your @${TEACHER_EMAIL_DOMAIN} college account for the Teacher demo label.`;
-  });
-
   function resetToFront() {
     if(cameraStream)stopCamera();
     ui.dashboard.classList.remove("active");ui.dashboard.setAttribute("aria-hidden","true");
@@ -927,11 +914,11 @@
     ui.intro.classList.remove("leaving","walking");ui.introCopy.classList.remove("walking");ui.caption.classList.remove("active");
     introStart=null;walkthroughFinished=false;introPowerOn=false;setDoorOpen(false);
     walkingStudent.visible=false;
-    setMode("auto");setPeopleCount(0,"MANUAL / DEMO");setOccupied(false,"front page replay");
+    setMode("auto");setPeopleCount(0,"MANUAL / SIMULATION");setOccupied(false,"front page replay");
     ["light","fan","ac"].forEach((device)=>{if(state[device])setDevice(device,false,"returning to front page");});
     cameraMode="intro";cameraTween=null;camera.position.set(-3,6.5,16.2);camera.lookAt(-3,1.2,1.2);
     world.appendChild(renderer.domElement);resize();
-    byId("system-state-label").textContent="DEMO SYSTEM READY";ui.authNote.textContent="Choose a route in, or start the walk-through above.";
+    byId("system-state-label").textContent=googleAuthenticated?"ACCOUNT READY":"SIGN-IN REQUIRED";ui.authNote.textContent=googleAuthenticated?"Google account connected. Enter the classroom when ready.":"Sign in with Google before opening the classroom.";
   }
   function returnToVivekIntro() {
     if (ui.dashboard.classList.contains("active")) resetToFront();
@@ -972,28 +959,23 @@
   }
   ui.sound.addEventListener("click",toggleAmbient);
 
-  // Google Identity Services is optional. The email role is only a demo label.
-  function showGoogleButton() {
-    const slot=byId("google-signin-slot");
-    if(GOOGLE_CLIENT_ID.startsWith("PASTE_")){
-      slot.innerHTML='<button class="auth-button" type="button" disabled>Google · add Client ID</button>';
-      return;
+  // Firebase Auth verifies the Google sign-in and owns the persisted session.
+  // The email is display-only; this app has no staff role or server-side data.
+  document.addEventListener("classroom-auth-state", (event) => {
+    const user = event.detail?.user || null;
+    googleAuthenticated = Boolean(user && user.emailVerified);
+    signedInEmail = googleAuthenticated ? user.email : "";
+    byId("google-sign-out").hidden = !googleAuthenticated;
+    byId("system-state-label").textContent = googleAuthenticated ? "ACCOUNT READY" : "SIGN-IN REQUIRED";
+    if (googleAuthenticated) {
+      ui.authNote.textContent = `Signed in as ${signedInEmail}.`;
+    } else if (!ui.authNote.textContent.includes("setup") && !ui.authNote.textContent.includes("not configured")) {
+      ui.authNote.textContent = "Sign in with Google before opening the classroom.";
     }
-    let attempts=0;
-    const check=window.setInterval(()=>{
-      if(window.google?.accounts?.id){clearInterval(check);window.google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:(response)=>{
-        try{
-          const part=response.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
-          const profile=JSON.parse(decodeURIComponent(Array.from(atob(part),c=>"%"+c.charCodeAt(0).toString(16).padStart(2,"0")).join("")));
-          const teacher=(profile.email||"").toLowerCase().endsWith(`@${TEACHER_EMAIL_DOMAIN}`);
-          ui.authNote.textContent=`Google sign-in · ${teacher?"Teacher":"Student"} demo label only; no server verification.`;
-          byId("system-state-label").textContent=teacher?"TEACHER DEMO":"STUDENT DEMO";
-          startWalkthrough();
-        }catch(error){ui.authNote.textContent="Google returned an unreadable sign-in response.";}
-      }});window.google.accounts.id.renderButton(slot,{theme:"filled_black",shape:"pill",size:"medium",text:"continue_with"});}
-      else if(++attempts>60){clearInterval(check);ui.authNote.textContent="Google sign-in could not load. Developer demo is ready.";}
-    },100);
-  }
+  });
+  document.addEventListener("classroom-auth-success", () => {
+    if (googleAuthenticated) startWalkthrough();
+  });
 
   /* ------------------------------------------------------------
      Scene pointer controls. The canvas lives inside the Classroom 01 card
@@ -1055,7 +1037,7 @@
       walkingStudent.userData.armPivots[0].rotation.x=-step*.7;walkingStudent.userData.armPivots[1].rotation.x=step*.7;
       walkingStudent.position.y=Math.abs(Math.sin(elapsed*10.5))*.035*moving;
     }
-    if(elapsed>4.75&&!introPowerOn){introPowerOn=true;setPeopleCount(1,"DEMO WALK-IN");setOccupied(true,"student walked in");}
+    if(elapsed>4.75&&!introPowerOn){introPowerOn=true;setPeopleCount(1,"INTRO WALK-IN");setOccupied(true,"student walked in");}
     setCaption(elapsed);
     if(cameraMode==="intro"){
       const travel=smooth(elapsed/5.5);
@@ -1122,7 +1104,7 @@
 
   // The service worker caches the page shell; external model/CDN assets need internet.
   if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-  refreshDashboard();renderEnergy();drawRoomScreen();showGoogleButton();
+  refreshDashboard();renderEnergy();drawRoomScreen();
   logEvent("System initialized · waiting for a classroom entry.");
   requestAnimationFrame(animate);
 })();

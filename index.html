@@ -7,7 +7,7 @@
   <meta name="description" content="A cinematic smart classroom prototype by Madhav Institute of Technology & Science, Gwalior." />
   <title>Classroom Digital Brain — MITS Gwalior</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/classroom-digital-brain-logo.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400&family=Caveat+Brush&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="profile-intro.css?v=2" />
 
   <!-- Pinned browser libraries; no build tools or npm required. -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
@@ -48,7 +47,7 @@
 
   <header class="site-header" id="site-header">
     <a class="wordmark" href="#top" aria-label="Classroom Digital Brain home">
-      <span class="wordmark-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+      <img class="wordmark-icon" src="assets/classroom-digital-brain-logo.png" alt="" />
       <span>CLASSROOM<br><strong>DIGITAL BRAIN</strong></span>
     </a>
     <div class="header-center"><span class="header-line"></span><span>MITS · GWALIOR</span><span class="header-line"></span></div>
@@ -68,6 +67,7 @@
       <span class="live-indicator"><i></i><span id="header-live-label">EXPERIENCE</span></span>
       <button class="header-back" id="back-to-intro" type="button" hidden>↖ <span>Front page</span></button>
       <button class="header-back profile-back-button" id="back-to-vivek" type="button" title="Return to Vivek's opening page" aria-label="Return to Vivek's opening page" hidden>↶ <span>Vivek intro</span></button>
+      <button class="auth-button auth-signout" id="google-sign-out" type="button" hidden>Sign out</button>
     </div>
   </header>
 
@@ -87,18 +87,15 @@
         </div>
         <!-- From Uiverse.io by ayyjayy2 - https://uiverse.io/ayyjayy2/sour-dog-94 | MIT License, Copyright (c) andrew-demchenk0, ayyjayy2 (Alayna Johnston). Adapted to real showcase routes only; no fake password login is added. -->
         <div class="intro-auth access-card">
-          <div class="access-heading"><span class="auth-label">SHOWCASE ACCESS</span><span class="access-caption">Choose how to enter the room</span></div>
-          <!-- From Uiverse.io by xbeat_5120 - https://uiverse.io/xbeat_5120/mean-grasshopper-67 | MIT License, Copyright (c) xbeat_5120 (X Beat Ghost.611). This optional name is local demo personalization, never a credential. -->
-          <div class="uiverse-pixel-input-wrapper"><label class="uiverse-pixel-label" for="operator-name">DEMO NAME <span>OPTIONAL</span></label><input class="uiverse-pixel-input" placeholder="Enter your name..." id="operator-name" type="text" maxlength="24" autocomplete="nickname" /></div>
-          <div id="google-signin-slot" class="google-slot"></div>
-          <div class="access-actions"><button class="auth-button" id="teacher-login" type="button">Teacher route</button><button class="auth-button auth-button-quiet" id="developer-login" type="button">Developer demo</button></div>
+          <div class="access-heading"><span class="auth-label">GOOGLE ACCOUNT</span><span class="access-caption">Sign in to enter the classroom</span></div>
+          <div class="google-slot"><button class="auth-button google-auth-button" id="google-sign-in" type="button"><span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
         </div>
-        <p class="auth-note" id="auth-note" aria-live="polite">Choose a route in, or start the walk-through above.</p>
+      <p class="auth-note" id="auth-note" aria-live="polite">Sign in with Google before opening the classroom.</p>
       </div>
       <!-- From Uiverse.io by zeeshan_2112 - https://uiverse.io/zeeshan_2112/shy-rattlesnake-3 | MIT License, Copyright (c) zeeshan_2112 (zeeshan khan). Ticket sample values are replaced with classroom status. -->
-      <aside class="ticket-canvas" aria-label="MITS classroom demo pass"><div class="ticket-wrapper"><div class="ticket">
+      <aside class="ticket-canvas" aria-label="MITS classroom access pass"><div class="ticket-wrapper"><div class="ticket">
         <div class="t-main"><div class="t-content">
-          <div class="t-header"><div class="t-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>MITS / MĀDHAV</div><div class="t-type">LIVE DEMO</div></div>
+          <div class="t-header"><div class="t-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>MITS / MĀDHAV</div><div class="t-type">IOT ACCESS</div></div>
           <div class="t-title">MITS<br />IoT Pass</div><div class="t-subtitle">Digital Brain · Gwalior</div>
           <div class="t-details"><div class="t-detail-item"><span class="t-label">Name</span><span class="t-value">VIVEK DHAKAR</span></div><div class="t-detail-item"><span class="t-label">Date</span><span class="t-value">Nov 25, 2026</span></div><div class="t-detail-item"><span class="t-label">College</span><span class="t-value">Madhav Institute Of Technology &amp; Science</span></div><div class="t-detail-item"><span class="t-label">Branch</span><span class="t-value">Internet Of Things</span></div></div>
         </div><div class="t-perforation"><div class="t-perf-line"></div></div></div>
@@ -106,7 +103,7 @@
       </div></div></aside>
       <div class="intro-bottom">
         <div class="scroll-cue"><span class="scroll-cue-line"></span><span>THE CLASSROOM IS WAITING</span></div>
-        <p>DEVELOPED BY VIVEK DHAKAR <span>·</span> IOT STUDENT</p>
+        <p>DEVELOPED BY VIVEK DHAKAR <span>·</span> IOT STUDENT <a href="privacy.html" style="color:inherit;margin-left:10px">PRIVACY</a></p>
       </div>
       <div class="scene-label scene-label-door"><span>01</span> SIDE-WALL CLASSROOM DOOR</div>
       <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Toggle ambient sound" title="Ambient sound is off">
@@ -120,7 +117,7 @@
           <p class="eyebrow"><span class="eyebrow-dot"></span> CLASSROOM / LIVE SYSTEM</p>
           <h2>Good systems make <em>quiet work.</em></h2>
         </div>
-        <div class="session-chip"><span class="session-pulse"></span><span id="system-state-label">DEMO SYSTEM READY</span></div>
+      <div class="session-chip"><span class="session-pulse"></span><span id="system-state-label">SIGN-IN REQUIRED</span></div>
       </div>
 
       <div class="dashboard-layout">
@@ -183,7 +180,7 @@
           <!-- From Uiverse.io by monkey_8812 - https://uiverse.io/monkey_8812/curly-moth-56 | MIT License, Copyright (c) monkey_8812 (Monkey Z). Glass/orbit treatment adapted to live room metrics. -->
           <section class="panel status-card room-pass-card">
             <div class="panel-heading"><div><span class="section-kicker">RIGHT NOW</span><h3>Room status</h3></div><span class="status-beacon" id="room-beacon"></span></div>
-            <div class="status-hero"><strong id="occupancy-value">EMPTY</strong><span id="occupancy-source">MANUAL / DEMO</span></div>
+            <div class="status-hero"><strong id="occupancy-value">EMPTY</strong><span id="occupancy-source">MANUAL / SIMULATION</span></div>
             <div class="status-metrics">
               <div><span>PEOPLE</span><strong id="people-value">0</strong></div>
               <div><span>TEMPERATURE</span><strong id="temperature-value">28.0<span>°C</span></strong></div>
@@ -203,7 +200,7 @@
               <div class="device-row" data-device-row="fan"><span class="device-glyph glyph-fan">◌</span><div class="device-info"><strong>Ceiling fan</strong><small id="fan-note">Air circulation</small></div><span class="device-state" id="fan-state">OFF</span><label class="uiverse-device-switch"><input class="cb" id="fan-toggle" type="checkbox" disabled aria-label="Ceiling fan" /><span class="uiverse-device-toggle"><span class="left">OFF</span><span class="right">ON</span></span></label></div>
               <div class="device-row" data-device-row="ac"><span class="device-glyph glyph-ac">❄</span><div class="device-info"><strong>Air conditioning</strong><small id="ac-note">Relay ready · thermostat</small></div><span class="device-state" id="ac-state">OFF</span><label class="uiverse-device-switch"><input class="cb" id="ac-toggle" type="checkbox" disabled aria-label="Air conditioning" /><span class="uiverse-device-toggle"><span class="left">OFF</span><span class="right">ON</span></span></label></div>
             </div>
-            <div class="slider-group"><label for="temperature-slider"><span id="temperature-mode-label">DEMO TEMPERATURE</span><strong><span id="temperature-readout">28</span>°C</strong></label><input id="temperature-slider" type="range" min="16" max="40" value="28" /></div>
+            <div class="slider-group"><label for="temperature-slider"><span id="temperature-mode-label">SIMULATED TEMPERATURE</span><strong><span id="temperature-readout">28</span>°C</strong></label><input id="temperature-slider" type="range" min="16" max="40" value="28" /></div>
             <div class="slider-group"><label for="setpoint-slider">AC SETPOINT <strong><span id="setpoint-readout">26</span>°C</strong></label><input id="setpoint-slider" type="range" min="20" max="32" value="26" /></div>
             <div class="slider-group slider-group-last"><label for="delay-slider">EMPTY ROOM DELAY <strong><span id="delay-readout">12</span>s</strong></label><input id="delay-slider" type="range" min="5" max="60" value="12" /></div>
           </section>
@@ -240,6 +237,7 @@
   <!-- Uiverse.io by KSAplay - https://uiverse.io/KSAplay/shy-rat-62: adapted indeterminate progress bar for the real initial scene render. -->
   <div class="loading-cover" id="loading-cover" role="status" aria-live="polite"><svg class="studio-hourglass" role="img" aria-label="Preparing the 3D classroom" viewBox="0 0 56 56"><g transform="translate(13.75,9.25)"><path d="M1.5 2h21.5c0 0-.5 6.5-4 10-3 3.5-5.5 1.5-5.5 4.75S16 18.5 19 22s4 9.5 4 9.5H1.5s.5-6.5 4-10 5.5-1.5 5.5-4.75S8.5 15.5 5.5 12 1.5 2 1.5 2Z" fill="none" stroke="currentColor" stroke-width="1.3" /><path d="M4 5h17M4 28h17" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /><path class="sand-top" d="M6 7h13c-.5 4-2.5 6-6.5 8-4-2-6-4-6.5-8Z" fill="currentColor" /><path class="sand-bottom" d="M6 26h13c-.5-4-2.5-6-6.5-8-4 2-6 4-6.5 8Z" fill="currentColor" opacity=".88" /><path class="sand-stream" d="M12.5 15v7" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1 2" /></g><circle class="hourglass-orbit" cx="28" cy="28" r="25" fill="none" stroke="currentColor" stroke-width=".65" stroke-dasharray="42 116" /></svg><p>SETTING THE ROOM</p><span class="loading-progress" aria-hidden="true"><i></i></span></div>
 
-  <script defer src="script.js?v=4"></script>
+  <script defer src="script.js?v=8"></script>
+  <script type="module" src="firebase-auth.js?v=1"></script>
 </body>
 </html>

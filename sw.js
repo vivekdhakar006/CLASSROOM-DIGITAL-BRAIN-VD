@@ -1,14 +1,19 @@
 /* App shell cache for the standalone Classroom Digital Brain project. */
-const CACHE_NAME = "classroom-codex-showcase-v4";
+const CACHE_NAME = "classroom-codex-showcase-v7";
 const APP_FILES = [
   "./",
   "./index.html",
   "./style.css",
   "./studio.css",
   "./profile-intro.css?v=2",
-  "./script.js?v=4",
+  "./script.js?v=8",
+  "./firebase-auth.js?v=1",
+  "./firebase-config.js",
   "./manifest.json",
   "./icon.svg",
+  "./assets/classroom-digital-brain-logo.svg",
+  "./assets/classroom-digital-brain-logo.png",
+  "./privacy.html",
   "./assets/vivek-portrait.png"
 ];
 
