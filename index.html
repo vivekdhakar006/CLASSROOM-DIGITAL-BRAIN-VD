@@ -208,7 +208,7 @@
           <details class="panel hardware-card" id="hardware-card">
             <summary><span><span class="section-kicker">HARDWARE / 05</span><strong>Connect the model</strong></span><span class="details-chevron">+</span></summary>
             <div class="hardware-content">
-              <p>USB serial supports Arduino at 9600 baud or ESP32 at 115200. Reads <code>TEMP:28.4</code> and <code>MOTION:1</code>; sends one command per line.</p>
+              <p>Use the baud rate set in your firmware. ESP32 is usually 115200; Arduino is usually 9600. Close Arduino Serial Monitor before connecting here. Temperature appears when the board sends a <code>TEMP:28.4</code> line.</p>
               <label class="select-label" for="board-speed">BOARD TYPE</label>
               <select id="board-speed"><option value="115200">ESP32 · 115200 baud</option><option value="9600">Arduino · 9600 baud</option><option value="115200">Other · 115200 baud</option></select>
               <button class="button-outline hardware-connect" id="serial-connect" type="button">Connect USB board</button>
