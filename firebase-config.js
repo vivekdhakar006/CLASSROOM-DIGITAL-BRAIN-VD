@@ -1,5 +1,5 @@
-// Firebase web-app settings are public identifiers, not secrets.
-// Replace these values with the config shown for the Firebase web app in Firebase Console.
+// Firebase web-app settings identify this project; they are public, not secrets.
+// Never place a service-account key or private OAuth client secret in this file.
 export const firebaseConfig = {
   apiKey: "AIzaSyAUzR5HN0xIuxj9UZWWIE6zLhQOv-_6Av0",
   authDomain: "classroom-digital-brain.firebaseapp.com",

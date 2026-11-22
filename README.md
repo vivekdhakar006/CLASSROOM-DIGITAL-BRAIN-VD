@@ -35,7 +35,7 @@ The intro card displays Vivek Dhakar, Nov 25, 2026, Madhav Institute Of Technolo
 - Firebase project `classroom-digital-brain` and web app `Classroom Digital Brain Web` are registered. Google sign-in is enabled, and `localhost` plus `vivekdhakar006.github.io` are Firebase Authentication authorized domains. Its public config is in `firebase-config.js`. Never put a service-account key or private OAuth client secret in this folder.
 - The Google sign-in gate requires a Firebase-authenticated, email-verified account. The dashboard, camera, and serial controls still run entirely in the visitor's browser; this static site has no backend or private server data to protect, so this gate does not make local hardware controls or client code tamper-proof. Add server-side authorization (for example, verified Firebase ID tokens with callable functions) before storing protected data or granting privileged actions.
 - The privacy page is at `privacy.html`. Google OAuth production verification and public release still need a verified custom domain, public homepage/privacy URLs on that domain, completed branding, and a Google review if required. The current GitHub Pages domain is shared and cannot be verified as an owned domain.
-- Follow `SECURITY.md` to finish Firebase setup and prepare the Google OAuth app for public use.
+- Follow `SECURITY.md` for the remaining public OAuth verification steps. A custom domain you own is still needed before Google can verify the app for public production sign-in.
 - AC commands assume firmware support for `AC_ON` and `AC_OFF`.
 
 ## File map
@@ -46,5 +46,7 @@ The intro card displays Vivek Dhakar, Nov 25, 2026, Madhav Institute Of Technolo
 - `profile-intro.css` and `assets/vivek-portrait.png` — the first-page portrait reveal and its local image asset.
 - `script.js` — Three.js classroom, walkthrough, camera, automation, theme sync, Web Serial, and simulation logic.
 - `manifest.json`, `sw.js`, `icon.svg` — installable PWA shell.
+- `firebase-auth.js`, `firebase-config.js` — Firebase-managed Google sign-in and public web-app config.
+- `privacy.html`, `SECURITY.md` — privacy notice and deployment/security boundaries.
 
 Credit comments for adapted Uiverse elements are kept beside their markup and at the top of `studio.css`.
