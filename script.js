@@ -414,9 +414,10 @@
   }
 
   // Orbit view is used after the intro; the intro has its own slow camera path.
-  const orbit = { theta: 0.76, phi: 1.02, distance: 15.8, target: new THREE.Vector3(0,1.3,0) };
+  const orbit = { theta: 0.76, phi: 1.02, distance: 17.5, target: new THREE.Vector3(0,1.1,0) };
   let cameraMode = "intro";
   let cameraTween = null;
+  let userAdjustedRoomView = false;
   let introPointer = { x: 0, y: 0 };
   let introStart = null;
   let introPowerOn = false;
@@ -433,6 +434,14 @@
     );
   }
   function updateOrbitCamera() { camera.position.copy(orbitPosition()); camera.lookAt(orbit.target); }
+  // Keep the full room inside its card, including on short and narrow screens.
+  function fitRoomView() {
+    const aspect = Math.max(1, sceneViewport.clientWidth) / Math.max(1, sceneViewport.clientHeight);
+    orbit.theta = 0.76;
+    orbit.phi = 1.02;
+    orbit.target.set(0, 1.1, 0);
+    orbit.distance = clamp(17.5 * Math.sqrt(1.9 / aspect), 16, 21);
+  }
   function flyToDashboard() {
     const destination = orbitPosition();
     cameraTween = { from: camera.position.clone(), to: destination, fromTarget: new THREE.Vector3(-3,1.2,1.2), toTarget: orbit.target.clone(), elapsed: 0, duration: reduceMotion ? 0 : 1.8 };
@@ -444,8 +453,18 @@
     camera.aspect = width / height; camera.updateProjectionMatrix();
     renderer.setSize(width,height,false);
   }
-  window.addEventListener("resize", resize);
-  const sceneResizeObserver = new ResizeObserver(() => { if (renderer.domElement.parentElement === sceneViewport) resize(); });
+  window.addEventListener("resize", () => {
+    resize();
+    if (renderer.domElement.parentElement === sceneViewport && cameraMode === "orbit" && !userAdjustedRoomView) {
+      fitRoomView(); updateOrbitCamera();
+    }
+  });
+  const sceneResizeObserver = new ResizeObserver(() => {
+    if (renderer.domElement.parentElement === sceneViewport) {
+      resize();
+      if (cameraMode === "orbit" && !userAdjustedRoomView) { fitRoomView(); updateOrbitCamera(); }
+    }
+  });
   sceneResizeObserver.observe(sceneViewport);
 
   /* ------------------------------------------------------------
@@ -772,21 +791,33 @@
     try {
       while(true){
         const {value,done}=await reader.read(); if(done)break;
-        buffer+=decoder.decode(value,{stream:true}); let newline=buffer.indexOf("\n");
-        while(newline>=0){handleSerialLine(buffer.slice(0,newline));buffer=buffer.slice(newline+1);newline=buffer.indexOf("\n");}
+        buffer+=decoder.decode(value,{stream:true});
+        const lines=buffer.split(/\r\n|\n|\r/);
+        buffer=lines.pop() || "";
+        lines.forEach(handleSerialLine);
       }
       buffer+=decoder.decode(); if(buffer.trim())handleSerialLine(buffer);
     } catch(error) { if(port===serialPort){ui.serialStatus.textContent="READ INTERRUPTED";logEvent("Hardware telemetry stream stopped.","warn");} }
     finally { try{reader.releaseLock();}catch(error){} if(serialReader===reader)serialReader=null; }
   }
   function handleSerialLine(line) {
-    const message=line.trim();
-    const tempMatch=message.match(/^TEMP\s*:\s*(-?\d+(?:\.\d+)?)$/i);
+    // Accept firmware lines, Serial Monitor prefixes/units, and CR-only line endings.
+    const message=line.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\uFEFF/g, "").trim();
+    const tempMatch=message.match(/\bTEMP(?:ERATURE)?\s*[:=]\s*(-?\d+(?:\.\d+)?)/i);
     if(tempMatch){
-    const value=Number(tempMatch[1]); if(Number.isFinite(value)&&value>=-20&&value<=80){state.temperature=value;state.sensorTemperature=true;byId("temperature-mode-label").textContent="LIVE SENSOR";byId("temperature-readout").textContent=String(Math.round(value));byId("temperature-slider").value=clamp(Math.round(value),16,40);refreshDashboard();checkClimate();}
-      return;
+      const value=Number(tempMatch[1]);
+      if(Number.isFinite(value)&&value>=-20&&value<=80){
+        state.temperature=value;
+        state.sensorTemperature=true;
+        byId("temperature-mode-label").textContent="LIVE SENSOR";
+        byId("temperature-readout").textContent=value.toFixed(1);
+        byId("temperature-slider").value=clamp(Math.round(value),16,40);
+        ui.serialStatus.textContent="CONNECTED · LIVE TELEMETRY";
+        refreshDashboard();
+        checkClimate();
+      }
     }
-    const motionMatch=message.match(/^MOTION\s*:\s*([01])$/i);
+    const motionMatch=message.match(/\bMOTION\s*[:=]\s*([01])\b/i);
     if(motionMatch){boardMotion=motionMatch[1]==="1";if(!cameraStream){const count=boardMotion?1:0;state.source="BOARD / PIR";setPeopleCount(count,state.source);if(boardMotion!==state.occupied)setOccupied(boardMotion,"PIR sensor");}}
   }
   async function connectSerial() {
@@ -890,7 +921,7 @@
     ui.dashboard.classList.add("active");ui.dashboard.setAttribute("aria-hidden","false");
     revealDashboardPanels();
     sceneViewport.appendChild(renderer.domElement);
-    resize();
+    fitRoomView();resize();
     ui.header.classList.add("dashboard-mode");ui.headerBack.hidden=false;ui.headerLive.textContent="LIVE ROOM";
     byId("system-state-label").textContent="ROOM RESPONDING";
     flyToDashboard();
@@ -916,7 +947,7 @@
     walkingStudent.visible=false;
     setMode("auto");setPeopleCount(0,"MANUAL / SIMULATION");setOccupied(false,"front page replay");
     ["light","fan","ac"].forEach((device)=>{if(state[device])setDevice(device,false,"returning to front page");});
-    cameraMode="intro";cameraTween=null;camera.position.set(-3,6.5,16.2);camera.lookAt(-3,1.2,1.2);
+    cameraMode="intro";cameraTween=null;userAdjustedRoomView=false;camera.position.set(-3,6.5,16.2);camera.lookAt(-3,1.2,1.2);
     world.appendChild(renderer.domElement);resize();
     byId("system-state-label").textContent=googleAuthenticated?"ACCOUNT READY":"SIGN-IN REQUIRED";ui.authNote.textContent=googleAuthenticated?"Google account connected. Enter the classroom when ready.":"Sign in with Google before opening the classroom.";
   }
@@ -1000,8 +1031,8 @@
     const pointer=pointers.get(event.pointerId);
     if(!pointer){if(event.pointerType==="mouse")sceneViewport.style.cursor=deviceAt(event.clientX,event.clientY)?"pointer":"grab";return;}
     const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;pointer.x=event.clientX;pointer.y=event.clientY;
-    if(pointers.size===2){const gap=pointerGap();orbit.distance=clamp(orbit.distance*pinchStart/gap,9.5,23);pinchStart=gap;updateOrbitCamera();}
-    else if(cameraMode==="orbit"){orbit.theta-=dx*.005;orbit.phi=clamp(orbit.phi-dy*.004,.55,1.4);updateOrbitCamera();}
+    if(pointers.size===2){const gap=pointerGap();orbit.distance=clamp(orbit.distance*pinchStart/gap,9.5,23);pinchStart=gap;userAdjustedRoomView=true;updateOrbitCamera();}
+    else if(cameraMode==="orbit"){orbit.theta-=dx*.005;orbit.phi=clamp(orbit.phi-dy*.004,.55,1.4);userAdjustedRoomView=true;updateOrbitCamera();}
   });
   function pointerEnd(event,allowClick){
     const moved=downPoint?Math.hypot(event.clientX-downPoint.x,event.clientY-downPoint.y):99;
@@ -1015,10 +1046,10 @@
   }
   sceneViewport.addEventListener("pointerup",(event)=>pointerEnd(event,true));
   sceneViewport.addEventListener("pointercancel",(event)=>pointerEnd(event,false));
-  sceneViewport.addEventListener("wheel",(event)=>{event.preventDefault();orbit.distance=clamp(orbit.distance+event.deltaY*.012,9.5,23);if(cameraMode==="orbit")updateOrbitCamera();},{passive:false});
-  byId("zoom-in").addEventListener("click",()=>{orbit.distance=clamp(orbit.distance-1.2,9.5,23);updateOrbitCamera();});
-  byId("zoom-out").addEventListener("click",()=>{orbit.distance=clamp(orbit.distance+1.2,9.5,23);updateOrbitCamera();});
-  byId("reset-view").addEventListener("click",()=>{orbit.theta=.76;orbit.phi=1.02;orbit.distance=15.8;orbit.target.set(0,1.3,0);updateOrbitCamera();});
+  sceneViewport.addEventListener("wheel",(event)=>{event.preventDefault();orbit.distance=clamp(orbit.distance+event.deltaY*.012,9.5,23);userAdjustedRoomView=true;if(cameraMode==="orbit")updateOrbitCamera();},{passive:false});
+  byId("zoom-in").addEventListener("click",()=>{orbit.distance=clamp(orbit.distance-1.2,9.5,23);userAdjustedRoomView=true;updateOrbitCamera();});
+  byId("zoom-out").addEventListener("click",()=>{orbit.distance=clamp(orbit.distance+1.2,9.5,23);userAdjustedRoomView=true;updateOrbitCamera();});
+  byId("reset-view").addEventListener("click",()=>{userAdjustedRoomView=false;fitRoomView();updateOrbitCamera();});
   byId("door-toggle").addEventListener("click",()=>setDoorOpen(doorOpenAmount<.5));
   ui.intro.addEventListener("pointermove",(event)=>{introPointer.x=(event.clientX/window.innerWidth-.5)*2;introPointer.y=(event.clientY/window.innerHeight-.5)*2;});
 
