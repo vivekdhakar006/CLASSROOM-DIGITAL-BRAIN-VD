@@ -6,7 +6,7 @@ A standalone MITS Gwalior smart-classroom showcase built with plain HTML, CSS, J
 
 1. Open the `Classroom.codex` folder in VS Code.
 2. Open `index.html` and choose **Open with Live Server** (or click **Go Live**).
-3. Complete the Firebase setup in `SECURITY.md`, then sign in with Google to enter the classroom. Allow camera access only when you want local person detection; **Simulate arrival** works without a camera.
+3. Sign in with Google to enter the classroom. Firebase sign-in is configured for Live Server and GitHub Pages; follow `SECURITY.md` for the remaining custom-domain Google verification needed for public production sign-in. Allow camera access only when you want local person detection; **Simulate arrival** works without a camera.
 
 The pinned Three.js, TensorFlow.js, COCO-SSD, Firebase Authentication, and Google Fonts scripts load from CDNs, so sign-in and the first launch need internet access. Camera and Web Serial require localhost or HTTPS. Web Serial works in desktop Chrome or Edge.
 
