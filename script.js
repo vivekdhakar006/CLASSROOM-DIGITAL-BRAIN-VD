@@ -405,7 +405,7 @@
     c.fillStyle="#b7c69b"; c.font="600 20px Manrope, sans-serif"; c.fillText("MITS  /  SMART ROOM",28,45);
     c.strokeStyle="#354536"; c.beginPath(); c.moveTo(28,61); c.lineTo(484,61); c.stroke();
     c.fillStyle=state.occupied?"#a8ddb0":"#8c9889"; c.font="500 34px Manrope, sans-serif"; c.fillText(state.occupied?`OCCUPIED · ${state.people}`:"ROOM EMPTY",28,112);
-    c.fillStyle="#d9cfb7"; c.font="400 24px Manrope, sans-serif"; c.fillText(`${state.temperature.toFixed(1)} °C`,28,166);
+    c.fillStyle="#d9cfb7"; c.font="400 24px Manrope, sans-serif"; c.fillText(serialPort && !state.sensorTemperature ? "— °C" : `${state.temperature.toFixed(1)} °C`,28,166);
     const parts = [`LIGHT ${state.light?"ON":"OFF"}`,`FAN ${state.fan?"ON":"OFF"}`,`AC ${state.ac?"ON":"OFF"}`];
     c.font="500 17px Manrope, sans-serif"; c.fillStyle="#b6c1ae";
     parts.forEach((part,index)=>c.fillText(part,28+index*150,226));
@@ -485,8 +485,10 @@
     ui.occupancySource.textContent = state.source;
     ui.people.textContent = String(state.people);
     ui.cameraCount.textContent = String(state.people);
-    ui.temp.innerHTML = `${state.temperature.toFixed(1)}<span>°C</span>`;
-    ui.sceneTemp.innerHTML = `${state.temperature.toFixed(1)}° <small>C</small>`;
+    const waitingForBoardTemperature = Boolean(serialPort) && !state.sensorTemperature;
+    ui.temp.innerHTML = waitingForBoardTemperature ? `—<span>°C</span>` : `${state.temperature.toFixed(1)}<span>°C</span>`;
+    ui.sceneTemp.innerHTML = waitingForBoardTemperature ? `—° <small>C</small>` : `${state.temperature.toFixed(1)}° <small>C</small>`;
+    if (waitingForBoardTemperature) byId("temperature-readout").textContent = "—";
     ui.roomState.textContent = occupancyLabel;
     ui.beacon.classList.toggle("occupied", state.occupied);
     $("#camera-count").textContent = String(state.people);
@@ -839,19 +841,19 @@
     let port=null;
     try{
       port=await navigator.serial.requestPort();await port.open({baudRate:Number(ui.boardSpeed.value)||115200});serialPort=port;
-      serialConnectedAt=Date.now();serialLastByteAt=0;serialLastTemperatureAt=0;
-      ui.serialLastData.textContent="WAITING FOR SERIAL DATA";ui.serialLastData.title="";
-      ui.serialStatus.textContent=port.readable?"CONNECTED · LISTENING":"CONNECTED · OUTPUT ONLY";ui.serialStatus.classList.add("connected");
+      serialConnectedAt=Date.now();serialLastByteAt=0;serialLastTemperatureAt=0;state.sensorTemperature=false;
+      ui.serialLastData.textContent="Waiting for first board line…";ui.serialLastData.title="";
+      ui.serialStatus.textContent=port.readable?"CONNECTED · WAITING FOR BOARD":"CONNECTED · OUTPUT ONLY";ui.serialStatus.classList.add("connected");
       ui.serialButton.textContent="Disconnect board";state.source=cameraStream?"CAMERA":"BOARD / WAITING";byId("temperature-mode-label").textContent=state.sensorTemperature?"LAST SENSOR":"WAITING FOR SENSOR";byId("ac-note").textContent="Relay linked · thermostat";refreshDashboard();
       serialReadTask=readSerial(port);
       if(serialWatchdog)clearInterval(serialWatchdog);
       serialWatchdog=setInterval(()=>{
         if(serialPort!==port)return;
         const now=Date.now();
-        if(!serialLastByteAt&&now-serialConnectedAt>5000){
+        if(!serialLastByteAt&&now-serialConnectedAt>2500){
           ui.serialStatus.textContent="CONNECTED · NO DATA";
           ui.serialLastData.textContent="No bytes. Check baud rate and close Serial Monitor.";
-        }else if(serialLastByteAt&&(!serialLastTemperatureAt||now-serialLastTemperatureAt>7000)){
+        }else if(serialLastByteAt&&(!serialLastTemperatureAt||now-serialLastTemperatureAt>3500)){
           ui.serialStatus.textContent="CONNECTED · NO TEMP LINE";
         }
       },1500);
