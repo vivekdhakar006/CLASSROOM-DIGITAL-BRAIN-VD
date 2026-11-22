@@ -6,7 +6,7 @@ const APP_FILES = [
   "./style.css",
   "./studio.css",
   "./profile-intro.css?v=2",
-  "./script.js?v=8",
+  "./script.js?v=9",
   "./firebase-auth.js?v=1",
   "./firebase-config.js",
   "./manifest.json",
