@@ -816,7 +816,7 @@
     const visibleLine=message.replace(/[^\x20-\x7E°]/g,"·").replace(/\s+/g," ").slice(0,70);
     ui.serialLastData.textContent=visibleLine;
     ui.serialLastData.title=message;
-    const tempMatch=message.match(/\b(?:TEMP(?:ERATURE)?|T)\s*[:=]\s*(-?\d+(?:\.\d+)?)/i)
+    const tempMatch=message.match(/\b(?:TEMP(?:ERATURE)?|T)\s*(?:[:=]\s*|\s+)(-?\d+(?:\.\d+)?)/i)
       || message.match(/^\s*(-?\d{1,2}\.\d{1,2})\s*(?:°?\s*C)?\s*$/i);
     if(tempMatch){
       const value=Number(tempMatch[1]);
@@ -856,7 +856,7 @@
         }else if(serialLastByteAt&&(!serialLastTemperatureAt||now-serialLastTemperatureAt>3500)){
           ui.serialStatus.textContent="CONNECTED · NO TEMP LINE";
         }
-      },1500);
+      },500);
       sendSerialLine(`LIGHT_${state.light?"ON":"OFF"}`);sendSerialLine(`FAN_${state.fan?"ON":"OFF"}`);sendSerialLine(`AC_${state.ac?"ON":"OFF"}`);
       logEvent("USB board connected. Relay states synchronised.");
     }catch(error){if(port?.opened){try{await port.close();}catch(closeError){}}serialPort=null;ui.serialStatus.textContent="CONNECT FAILED";ui.serialStatus.classList.remove("connected");ui.serialLastData.textContent=String(error?.message||error).slice(0,70);logEvent(`USB connection failed · ${String(error?.message||error).slice(0,90)}`,"warn");}
