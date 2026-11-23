@@ -85,11 +85,16 @@
           </button>
           <button class="skip-button" id="skip-experience" type="button">Skip the intro <span aria-hidden="true">→</span></button>
         </div>
-        <!-- From Uiverse.io by ayyjayy2 - https://uiverse.io/ayyjayy2/sour-dog-94 | MIT License, Copyright (c) andrew-demchenk0, ayyjayy2 (Alayna Johnston). Adapted to real showcase routes only; no fake password login is added. -->
-        <div class="intro-auth access-card">
-          <div class="access-heading"><span class="auth-label">GOOGLE ACCOUNT</span><span class="access-caption">Sign in to enter the classroom</span></div>
-          <div class="google-slot"><button class="auth-button google-auth-button" id="google-sign-in" type="button"><span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
-        </div>
+        <!-- From Uiverse.io by andrew-demchenk0 - https://uiverse.io/andrew-demchenk0/little-treefrog-9 | MIT License, Copyright (c) andrew-demchenk0 (A). Adapted to the project's Google-only Firebase sign-in; no unsupported password/social login is shown. -->
+        <form class="intro-auth uiverse-auth-form" aria-labelledby="uiverse-auth-title" onsubmit="return false;">
+          <div class="uiverse-auth-title" id="uiverse-auth-title">Welcome,<br /><span>sign in to continue</span></div>
+          <button class="uiverse-auth-confirm" id="google-sign-in" type="button">
+            <span class="uiverse-auth-google" aria-hidden="true">G</span>
+            Continue with Google
+            <span class="uiverse-auth-arrow" aria-hidden="true">→</span>
+          </button>
+          <p class="uiverse-auth-footnote">Secure account selection · Google sign-in</p>
+        </form>
       <p class="auth-note" id="auth-note" aria-live="polite">Sign in with Google before opening the classroom.</p>
       </div>
       <!-- From Uiverse.io by zeeshan_2112 - https://uiverse.io/zeeshan_2112/shy-rattlesnake-3 | MIT License, Copyright (c) zeeshan_2112 (zeeshan khan). Ticket sample values are replaced with classroom status. -->
