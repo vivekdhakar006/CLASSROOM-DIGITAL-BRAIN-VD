@@ -182,3 +182,49 @@ body { background:var(--ink); }
 .slider-group input[type="range"]::-webkit-slider-thumb:hover { transform:scale(1.14); box-shadow:0 0 0 6px var(--theme-glow),0 2px 8px rgba(0,0,0,.35); }
 .slider-group input[type="range"]::-moz-range-thumb { width:11px; height:11px; border:2px solid var(--cream); border-radius:50%; background:var(--moss); box-shadow:0 0 0 4px var(--theme-glow); cursor:grab; }
 .slider-group input[type="range"]:focus-visible::-webkit-slider-thumb { outline:2px solid var(--cream); outline-offset:3px; }
+
+/* From Uiverse.io by andrew-demchenk0 - https://uiverse.io/andrew-demchenk0/little-treefrog-9
+   MIT License, Copyright (c) andrew-demchenk0 (A). Scoped adaptation for the real Google sign-in form. */
+.uiverse-auth-form {
+  --uiverse-auth-ink: #101610;
+  --uiverse-auth-paper: #f2ead9;
+  width: min(520px, 62vw);
+  margin-top: 24px;
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgba(232,237,223,.2);
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(20,29,21,.92), rgba(10,15,12,.88));
+  box-shadow: 4px 4px rgba(4,8,5,.72), inset 0 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(16px);
+}
+.uiverse-auth-title { margin: 0 0 3px; color: var(--cream); font-size: 18px; font-weight: 800; line-height: 1.2; letter-spacing: -.03em; }
+.uiverse-auth-title span { color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.uiverse-auth-confirm {
+  min-height: 46px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(242,234,217,.55);
+  border-radius: 6px;
+  background: var(--uiverse-auth-paper);
+  color: var(--uiverse-auth-ink);
+  box-shadow: 4px 4px rgba(0,0,0,.58);
+  font: 700 12px Manrope, system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .2s ease;
+}
+.uiverse-auth-confirm:hover { background: #fff8e8; transform: translate(-1px,-1px); box-shadow: 5px 5px rgba(0,0,0,.58); }
+.uiverse-auth-confirm:active { transform: translate(3px,3px); box-shadow: 1px 1px rgba(0,0,0,.58); }
+.uiverse-auth-confirm:disabled { cursor: wait; opacity: .62; }
+.uiverse-auth-google { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: #4285f4; font: 800 15px Arial,sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,.16); }
+.uiverse-auth-arrow { margin-left: auto; font-size: 18px; line-height: 1; }
+.uiverse-auth-footnote { margin: 0; color: rgba(242,234,217,.48); font-size: 8px; letter-spacing: .04em; text-align: center; }
+@media (max-width:860px) { .uiverse-auth-form { width: min(520px,90vw); } }
+@media (max-width:600px) { .uiverse-auth-form { width: min(520px,90vw); margin-top: 18px; padding: 15px; } .uiverse-auth-title { font-size: 17px; } }
