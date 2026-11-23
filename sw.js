@@ -1,5 +1,5 @@
 /* App shell cache for the standalone Classroom Digital Brain project. */
-const CACHE_NAME = "classroom-codex-showcase-v11";
+const CACHE_NAME = "classroom-codex-showcase-v12";
 const APP_FILES = [
   "./",
   "./index.html",
