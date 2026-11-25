@@ -440,7 +440,7 @@
     orbit.theta = 0.76;
     orbit.phi = 1.02;
     orbit.target.set(0, 1.1, 0);
-    orbit.distance = clamp(17.5 * Math.sqrt(1.9 / aspect), 16, 21);
+    orbit.distance = clamp(14 * Math.sqrt(1.9 / aspect), 12.5, 18);
   }
   function flyToDashboard() {
     const destination = orbitPosition();
